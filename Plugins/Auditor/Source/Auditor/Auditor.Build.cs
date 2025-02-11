@@ -38,6 +38,11 @@ public class Auditor : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
+				"Blutility",
+				"UMGEditor",
+				"PhysicsCore",
+				"Niagara",
+				"LevelSequence"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
