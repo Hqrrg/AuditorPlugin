@@ -42,7 +42,9 @@ public class Auditor : ModuleRules
 				"UMGEditor",
 				"PhysicsCore",
 				"Niagara",
-				"LevelSequence"
+				"LevelSequence",
+				"DataValidation",
+				"DeveloperSettings"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

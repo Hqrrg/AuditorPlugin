@@ -7,7 +7,10 @@
 		{
 			"Name": "AuditorPlugin",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"DataValidation"
+			]
 		}
 	],
 	"Plugins": [
