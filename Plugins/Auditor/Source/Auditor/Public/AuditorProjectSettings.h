@@ -26,11 +26,24 @@ public:
 	TMap<EAuditedAsset, FString> SuffixMap;
 
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Naming Conventions", meta = (DisplayName = "Data Validation"))
-	bool EnableDataValidation = true;
+	bool EnableDataValidation = false;
+
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Naming Conventions", meta = (DisplayName = "Project Folder"))
+	FString ProjectFolderName;
+
+	UPROPERTY(Config)
+	bool FirstInit = true;
 
 public:
 	static bool GetPrefix(EAuditedAsset Key, FString& Prefix);
 	static bool GetSuffix(EAuditedAsset Key, FString& Suffix);
+
+	static bool IsDataValidationEnabled();
+	static FString GetProjectFolderName();
+
+	static bool IsFirstInit();
+
+	static void RegisterFirstInit();
 
 private:
 	void AddNamingConvention(EAuditedAsset Asset, FString Prefix = FString(TEXT("")), FString Suffix = FString(TEXT("")));

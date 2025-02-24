@@ -70,6 +70,31 @@ bool UAuditorProjectSettings::GetSuffix(EAuditedAsset Key, FString& Suffix)
 	return HasSuffix;
 }
 
+bool UAuditorProjectSettings::IsDataValidationEnabled()
+{
+	const UAuditorProjectSettings* Settings = GetDefault<UAuditorProjectSettings>();
+	return Settings->EnableDataValidation;
+}
+
+FString UAuditorProjectSettings::GetProjectFolderName()
+{
+	const UAuditorProjectSettings* Settings = GetDefault<UAuditorProjectSettings>();
+	return Settings->ProjectFolderName;
+}
+
+bool UAuditorProjectSettings::IsFirstInit()
+{
+	const UAuditorProjectSettings* Settings = GetDefault<UAuditorProjectSettings>();
+	return Settings->FirstInit;
+}
+
+void UAuditorProjectSettings::RegisterFirstInit()
+{
+	UAuditorProjectSettings* Settings = GetMutableDefault<UAuditorProjectSettings>();
+	Settings->FirstInit = false;
+	Settings->SaveConfig(CPF_Config, *Settings->GetDefaultConfigFilename());
+}
+
 void UAuditorProjectSettings::AddNamingConvention(EAuditedAsset Asset, FString Prefix, FString Suffix)
 {
 	if (!Prefix.IsEmpty()) PrefixMap.Add(Asset, Prefix);

@@ -44,7 +44,8 @@ public class Auditor : ModuleRules
 				"Niagara",
 				"LevelSequence",
 				"DataValidation",
-				"DeveloperSettings"
+				"DeveloperSettings",
+				"UnrealEd"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

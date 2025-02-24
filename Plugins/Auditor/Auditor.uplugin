@@ -18,7 +18,7 @@
 		{
 			"Name": "Auditor",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "PostEngineInit"
 		}
 	]
 }

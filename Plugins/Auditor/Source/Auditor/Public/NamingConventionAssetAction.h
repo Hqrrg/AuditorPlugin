@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AuditedAsset.h"
 #include "Editor/Blutility/Classes/AssetActionUtility.h"
 #include "NamingConventionAssetAction.generated.h"
 
@@ -21,12 +20,4 @@ public:
 public:
 	UFUNCTION(CallInEditor)
 	void ApplyNamingConvention();
-
-private:
-	EAuditedAsset GetAssetKeyFromClass(TSoftClassPtr<UObject> Class);
-
-	void SetupAsset(TSoftClassPtr<UObject> Class = nullptr, EAuditedAsset Key = EAuditedAsset::None);
-
-private:
-	TMap<TSoftClassPtr<UObject>, EAuditedAsset> AssetKeyMap;
 };
