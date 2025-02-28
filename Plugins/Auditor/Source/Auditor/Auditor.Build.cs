@@ -26,15 +26,6 @@ public class Auditor : ModuleRules
 			new string[]
 			{
 				"Core",
-				// ... add other public dependencies that you statically link with here ...
-			}
-			);
-			
-		
-		PrivateDependencyModuleNames.AddRange(
-			new string[]
-			{
-				"CoreUObject",
 				"Engine",
 				"Slate",
 				"SlateCore",
@@ -45,7 +36,18 @@ public class Auditor : ModuleRules
 				"LevelSequence",
 				"DataValidation",
 				"DeveloperSettings",
-				"UnrealEd"
+				"UnrealEd",
+				"LevelEditor",
+				"EditorScriptingUtilities"
+				// ... add other public dependencies that you statically link with here ...
+			}
+			);
+			
+		
+		PrivateDependencyModuleNames.AddRange(
+			new string[]
+			{
+				"CoreUObject"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

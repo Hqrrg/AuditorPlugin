@@ -3,10 +3,12 @@
 
 #include "AuditorEditorValidator.h"
 
+#include "AuditedAsset.h"
 #include "AuditorProjectSettings.h"
 #include "NamingConventionUtils.h"
 #include "EditorValidatorSubsystem.h"
 #include "Editor.h"
+#include "NamingConventionTestResult.h"
 
 UAuditorEditorValidator::UAuditorEditorValidator()
 {
@@ -22,7 +24,7 @@ bool UAuditorEditorValidator::CanValidateAsset_Implementation(const FAssetData& 
 {
 	bool CanValidate = Super::CanValidateAsset_Implementation(InAssetData, InObject, InContext);
 
-	FString ProjectFolderName = UAuditorProjectSettings::GetProjectFolderName();
+	FString ProjectFolderName = AuditorProjectSettings::GetProjectFolderName();
 	FString AssetPath = InAssetData.GetObjectPathString();
 
 	TArray<FString> Folders;
@@ -39,9 +41,9 @@ bool UAuditorEditorValidator::CanValidateAsset_Implementation(const FAssetData& 
 		}
 	}
 
-	if (UAuditorProjectSettings::IsDataValidationEnabled() && InProjectFolder)
+	if (AuditorProjectSettings::IsDataValidationEnabled() && InProjectFolder)
 	{
-		EAuditedAsset AssetKey = UNamingConventionUtils::GetAuditedAssetByClass(InAssetData.GetClass(), InAssetData);
+		EAuditedAsset AssetKey = NamingConventionUtils::GetAuditedAssetByClass(InAssetData.GetClass(), InAssetData);
 		CanValidate = AssetKey != EAuditedAsset::None;
 	}
 
@@ -52,11 +54,11 @@ EDataValidationResult UAuditorEditorValidator::ValidateLoadedAsset_Implementatio
 {
 	EDataValidationResult Result;
 
-	EAuditedAsset AssetKey = UNamingConventionUtils::GetAuditedAssetByClass(InAsset->GetClass(), InAssetData);
-	ENamingConventionTestResult Conformity = UNamingConventionUtils::CheckConformity(AssetKey, InAsset->GetName());
+	EAuditedAsset AssetKey = NamingConventionUtils::GetAuditedAssetByClass(InAsset->GetClass(), InAssetData);
+	ENamingConventionTestResult Conformity = NamingConventionUtils::CheckConformity(AssetKey, InAsset->GetName());
 
-	FString Prefix; UAuditorProjectSettings::GetPrefix(AssetKey, Prefix);
-	FString Suffix; UAuditorProjectSettings::GetSuffix(AssetKey, Suffix);
+	FString Prefix; AuditorProjectSettings::GetPrefix(AssetKey, Prefix);
+	FString Suffix; AuditorProjectSettings::GetSuffix(AssetKey, Suffix);
 
 	FString NoneErrorStr = FString(TEXT("Assets of type \'{Asset}\' must always be prefixed with \'{Prefix}\' and suffixed with \'{Suffix}\'."));
 	FString PrefixErrorStr = FString(TEXT("Assets of type \'{Asset}\' must always be prefixed with \'{Prefix}\'."));
@@ -67,7 +69,7 @@ EDataValidationResult UAuditorEditorValidator::ValidateLoadedAsset_Implementatio
 	FText SuffixError = FText::FromString(SuffixErrorStr);
 
 	// Choose name to use for class
-	FString NativeParentClassName = UNamingConventionUtils::GetAssetNativeParentClassName(InAssetData);
+	FString NativeParentClassName = NamingConventionUtils::GetAssetNativeParentClassName(InAssetData);
 	FString AssetClassName = NativeParentClassName.IsEmpty() ? InAssetData.GetClass()->GetName() : NativeParentClassName;
 	
 	FFormatNamedArguments NoneErrorFormatArgs;

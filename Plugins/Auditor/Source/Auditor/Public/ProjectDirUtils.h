@@ -2,22 +2,12 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "Node.h"
-#include "UObject/Object.h"
-#include "ProjectDirUtils.generated.h"
+class Node;
 
-/**
- * 
- */
-UCLASS()
-class AUDITOR_API UProjectDirUtils : public UObject
+namespace ProjectDirUtils
 {
-	GENERATED_BODY()
+	bool CreateDirectory(Node* Tree);
+	void GeneratePaths(Node* Root, FString& Path, TArray<FString>& Paths);
+	Node* GetProjectDirectoryTree();
+}
 
-public:
-	static bool CreateDirectory(Node* Tree);
-
-private:
-	static void GeneratePaths(Node* Root, FString& Path, TArray<FString>& Paths);
-};

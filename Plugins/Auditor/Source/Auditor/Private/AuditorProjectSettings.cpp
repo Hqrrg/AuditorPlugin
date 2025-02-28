@@ -3,6 +3,8 @@
 
 #include "AuditorProjectSettings.h"
 
+#include "AuditedAsset.h"
+
 UAuditorProjectSettings::UAuditorProjectSettings()
 {
 	PrefixMap = TMap<EAuditedAsset, FString>();
@@ -36,67 +38,70 @@ UAuditorProjectSettings::UAuditorProjectSettings()
 	AddNamingConvention(EAuditedAsset::LevelSequence, FString(TEXT("LS_")));
 }
 
-bool UAuditorProjectSettings::GetPrefix(EAuditedAsset Key, FString& Prefix)
-{
-	const UAuditorProjectSettings* Settings = GetDefault<UAuditorProjectSettings>();
-	if (!Settings) return false;
-
-	TMap<EAuditedAsset, FString> SettingsPrefixMap = Settings->PrefixMap;
-	
-	bool HasPrefix = false;
-	
-	if (SettingsPrefixMap.Contains(Key))
-	{
-		Prefix = SettingsPrefixMap[Key];
-		HasPrefix = true;
-	}
-	return HasPrefix;
-}
-
-bool UAuditorProjectSettings::GetSuffix(EAuditedAsset Key, FString& Suffix)
-{
-	const UAuditorProjectSettings* Settings = GetDefault<UAuditorProjectSettings>();
-	if (!Settings) return false;
-
-	TMap<EAuditedAsset, FString> SettingsSuffixMap = Settings->SuffixMap;
-	
-	bool HasSuffix = false;
-	
-	if (SettingsSuffixMap.Contains(Key))
-	{
-		Suffix = SettingsSuffixMap[Key];
-		HasSuffix = true;
-	}
-	return HasSuffix;
-}
-
-bool UAuditorProjectSettings::IsDataValidationEnabled()
-{
-	const UAuditorProjectSettings* Settings = GetDefault<UAuditorProjectSettings>();
-	return Settings->EnableDataValidation;
-}
-
-FString UAuditorProjectSettings::GetProjectFolderName()
-{
-	const UAuditorProjectSettings* Settings = GetDefault<UAuditorProjectSettings>();
-	return Settings->ProjectFolderName;
-}
-
-bool UAuditorProjectSettings::IsFirstInit()
-{
-	const UAuditorProjectSettings* Settings = GetDefault<UAuditorProjectSettings>();
-	return Settings->FirstInit;
-}
-
-void UAuditorProjectSettings::RegisterFirstInit()
-{
-	UAuditorProjectSettings* Settings = GetMutableDefault<UAuditorProjectSettings>();
-	Settings->FirstInit = false;
-	Settings->SaveConfig(CPF_Config, *Settings->GetDefaultConfigFilename());
-}
-
 void UAuditorProjectSettings::AddNamingConvention(EAuditedAsset Asset, FString Prefix, FString Suffix)
 {
 	if (!Prefix.IsEmpty()) PrefixMap.Add(Asset, Prefix);
 	if (!Suffix.IsEmpty()) SuffixMap.Add(Asset, Suffix);
+}
+
+namespace AuditorProjectSettings
+{
+	bool GetPrefix(EAuditedAsset Key, FString& Prefix)
+	{
+		const UAuditorProjectSettings* Settings = GetDefault<UAuditorProjectSettings>();
+		if (!Settings) return false;
+
+		TMap<EAuditedAsset, FString> SettingsPrefixMap = Settings->PrefixMap;
+		
+		bool HasPrefix = false;
+		
+		if (SettingsPrefixMap.Contains(Key))
+		{
+			Prefix = SettingsPrefixMap[Key];
+			HasPrefix = true;
+		}
+		return HasPrefix;
+	}
+
+	bool GetSuffix(EAuditedAsset Key, FString& Suffix)
+	{
+		const UAuditorProjectSettings* Settings = GetDefault<UAuditorProjectSettings>();
+		if (!Settings) return false;
+
+		TMap<EAuditedAsset, FString> SettingsSuffixMap = Settings->SuffixMap;
+		
+		bool HasSuffix = false;
+		
+		if (SettingsSuffixMap.Contains(Key))
+		{
+			Suffix = SettingsSuffixMap[Key];
+			HasSuffix = true;
+		}
+		return HasSuffix;
+	}
+
+	bool IsDataValidationEnabled()
+	{
+		const UAuditorProjectSettings* Settings = GetDefault<UAuditorProjectSettings>();
+		return Settings->EnableDataValidation;
+	}
+
+	FString GetProjectFolderName()
+	{
+		const UAuditorProjectSettings* Settings = GetDefault<UAuditorProjectSettings>();
+		return Settings->ProjectFolderName;
+	}
+
+	bool IsFirstInit()
+	{
+		const UAuditorProjectSettings* Settings = GetDefault<UAuditorProjectSettings>();
+		return Settings->FirstInit;
+	}
+
+	void RegisterFirstInit()
+	{
+		UAuditorProjectSettings* Settings = GetMutableDefault<UAuditorProjectSettings>();
+		Settings->FirstInit = false;
+		Settings->SaveConfig(CPF_Config, *Settings->GetDefaultConfigFilename());
+	}
 }

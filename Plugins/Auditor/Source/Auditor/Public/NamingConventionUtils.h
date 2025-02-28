@@ -2,31 +2,13 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "AuditedAsset.h"
-#include "NamingConventionTestResult.h"
-#include "NamingConventionUtils.generated.h"
+enum class EAuditedAsset : uint8;
+enum class ENamingConventionTestResult : uint8;
 
-/**
- * 
- */
-UCLASS()
-class AUDITOR_API UNamingConventionUtils : public UObject
+namespace NamingConventionUtils
 {
-	GENERATED_BODY()
-
-public:
-	UNamingConventionUtils();
-	
-public:
-	static ENamingConventionTestResult CheckConformity(EAuditedAsset Key, FString Name);
-
-	static EAuditedAsset GetAuditedAssetByClass(TSoftClassPtr<UObject> Class, const FAssetData& AssetData);
-
-	static FString GetAssetNativeParentClassName(const FAssetData& AssetData);
-
-	static TMap<TSoftClassPtr<UObject>, EAuditedAsset> GetAuditedAssetMap();
-	
-public:
-	TMap<TSoftClassPtr<UObject>, EAuditedAsset> AuditedAssetMap;
-};
+	ENamingConventionTestResult CheckConformity(EAuditedAsset Key, FString Name);
+	EAuditedAsset GetAuditedAssetByClass(TSoftClassPtr<UObject> Class, const FAssetData& AssetData);
+	FString GetAssetNativeParentClassName(const FAssetData& AssetData);
+	TMap<TSoftClassPtr<UObject>, EAuditedAsset>& GetAuditedAssetMap();
+}

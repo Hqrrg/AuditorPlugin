@@ -3,9 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AuditedAsset.h"
 #include "Engine/DeveloperSettings.h"
 #include "AuditorProjectSettings.generated.h"
+
+enum class EAuditedAsset : uint8;
 
 /**
  * 
@@ -18,6 +19,9 @@ class AUDITOR_API UAuditorProjectSettings : public UDeveloperSettings
 public:
 	UAuditorProjectSettings();
 
+private:
+	void AddNamingConvention(EAuditedAsset Asset, FString Prefix = FString(TEXT("")), FString Suffix = FString(TEXT("")));
+	
 public:
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Naming Conventions", meta = (DisplayName = "Prefixes"))
 	TMap<EAuditedAsset, FString> PrefixMap;
@@ -33,18 +37,17 @@ public:
 
 	UPROPERTY(Config)
 	bool FirstInit = true;
-
-public:
-	static bool GetPrefix(EAuditedAsset Key, FString& Prefix);
-	static bool GetSuffix(EAuditedAsset Key, FString& Suffix);
-
-	static bool IsDataValidationEnabled();
-	static FString GetProjectFolderName();
-
-	static bool IsFirstInit();
-
-	static void RegisterFirstInit();
-
-private:
-	void AddNamingConvention(EAuditedAsset Asset, FString Prefix = FString(TEXT("")), FString Suffix = FString(TEXT("")));
 };
+
+namespace AuditorProjectSettings
+{
+	bool GetPrefix(EAuditedAsset Key, FString& Prefix);
+	bool GetSuffix(EAuditedAsset Key, FString& Suffix);
+
+	bool IsDataValidationEnabled();
+	FString GetProjectFolderName();
+
+	bool IsFirstInit();
+
+	void RegisterFirstInit();
+}

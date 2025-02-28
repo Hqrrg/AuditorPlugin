@@ -3,10 +3,11 @@
 
 #include "Node.h"
 
-Node::Node(Node* Parent, FString Name)
+Node::Node(Node* Parent, FString Name, FColor Colour)
 {
 	this->Parent = Parent;
 	this->Name = Name;
+	this->Colour = Colour;
 }
 
 void Node::AddChild(Node* InChild)
