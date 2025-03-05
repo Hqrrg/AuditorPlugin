@@ -38,5 +38,6 @@ private:
 	void RegisterDirectoryManagementWidget();
 	TSharedRef<SDockTab> OnSpawnDirectoryManagementTab(const FSpawnTabArgs& SpawnTabArgs);
 	void InvokeDirectoryManagementWidget();
+	void CloseDirectoryManagementWidget();
 #pragma endregion
 };

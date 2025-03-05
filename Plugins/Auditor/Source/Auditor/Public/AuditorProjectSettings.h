@@ -33,10 +33,10 @@ public:
 	bool EnableDataValidation = false;
 
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Naming Conventions", meta = (DisplayName = "Project Folder"))
-	FString ProjectFolderName;
+	FString ProjectFolderName = TEXT("Project");
 
 	UPROPERTY(Config)
-	bool FirstInit = true;
+	bool FirstLaunch = true;
 };
 
 namespace AuditorProjectSettings
@@ -47,7 +47,11 @@ namespace AuditorProjectSettings
 	bool IsDataValidationEnabled();
 	FString GetProjectFolderName();
 
-	bool IsFirstInit();
+	inline bool IsProjectFolderSet() { return !GetProjectFolderName().IsEmpty(); }
 
-	void RegisterFirstInit();
+	void UpdateDataValidationEnabled(bool NewVal);
+	void UpdateProjectFolderName(FString NewVal);
+
+	bool IsFirstLaunch();
+	void RegisterFirstLaunch();
 }

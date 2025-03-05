@@ -92,16 +92,30 @@ namespace AuditorProjectSettings
 		return Settings->ProjectFolderName;
 	}
 
-	bool IsFirstInit()
-	{
-		const UAuditorProjectSettings* Settings = GetDefault<UAuditorProjectSettings>();
-		return Settings->FirstInit;
-	}
-
-	void RegisterFirstInit()
+	void UpdateDataValidationEnabled(bool NewVal)
 	{
 		UAuditorProjectSettings* Settings = GetMutableDefault<UAuditorProjectSettings>();
-		Settings->FirstInit = false;
+		Settings->EnableDataValidation = NewVal;
+		Settings->SaveConfig(CPF_Config, *Settings->GetDefaultConfigFilename());
+	}
+
+	void UpdateProjectFolderName(FString NewVal)
+	{
+		UAuditorProjectSettings* Settings = GetMutableDefault<UAuditorProjectSettings>();
+		Settings->ProjectFolderName = NewVal;
+		Settings->SaveConfig(CPF_Config, *Settings->GetDefaultConfigFilename());
+	}
+
+	bool IsFirstLaunch()
+	{
+		const UAuditorProjectSettings* Settings = GetDefault<UAuditorProjectSettings>();
+		return Settings->FirstLaunch;
+	}
+
+	void RegisterFirstLaunch()
+	{
+		UAuditorProjectSettings* Settings = GetMutableDefault<UAuditorProjectSettings>();
+		Settings->FirstLaunch = false;
 		Settings->SaveConfig(CPF_Config, *Settings->GetDefaultConfigFilename());
 	}
 }

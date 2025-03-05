@@ -4,13 +4,18 @@
 
 #include "AuditedAsset.h"
 #include "AuditorProjectSettings.h"
+#include "AuditorStyle.h"
 #include "ContentBrowserModule.h"
 #include "DebugUtils.h"
+#include "DirectoryManagementWidget.h"
 #include "EditorUtilityLibrary.h"
 #include "LevelEditor.h"
 #include "NamingConventionTestResult.h"
 #include "NamingConventionUtils.h"
 #include "EditorAssetLibrary.h"
+#include "Node.h"
+#include "ProjectDirUtils.h"
+#include "Windows/WindowsApplication.h"
 
 #define LOCTEXT_NAMESPACE "FAuditorModule"
 
@@ -18,16 +23,14 @@ void FAuditorModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 
+	FAuditorStyle::Init();
 	InitializeMenuExtenders();
 	RegisterDirectoryManagementWidget();
 	
-	if (AuditorProjectSettings::IsFirstInit())
+	if (AuditorProjectSettings::IsFirstLaunch())
 	{
-		AuditorProjectSettings::RegisterFirstInit();
+		AuditorProjectSettings::RegisterFirstLaunch();
 		InvokeDirectoryManagementWidget();
-		
-		/*Node* ProjectDirectoryTree = ProjectDirUtils::GetProjectDirectoryTree();
-		ProjectDirUtils::CreateDirectory(ProjectDirectoryTree);*/
 	}
 }
 
@@ -35,6 +38,8 @@ void FAuditorModule::ShutdownModule()
 {
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module.
+
+	FAuditorStyle::DeInit();
 }
 
 // Contains all the functions related to context menu extensions
@@ -84,7 +89,7 @@ void FAuditorModule::AddNamingConventionPathMenuEntry(class FMenuBuilder& MenuBu
 	MenuBuilder.AddMenuEntry(
 		FText::FromString(TEXT("Apply Naming Conventions")),
 		FText::FromString(TEXT("Rename relevant assets to comply with project naming conventions (i.e. prefixes & suffixes).")),
-		FSlateIcon(),
+		FSlateIcon(FAuditorStyle::GetStyleSetName(), FAuditorStyle::GetAuditorIconPropertyRegistry().NamingConvention),
 		FExecuteAction::CreateRaw(this, &FAuditorModule::NamingConventionPathMenuButtonClicked),
 		FName("NamingConventions"));
 }
@@ -100,6 +105,15 @@ void FAuditorModule::NamingConventionPathMenuButtonClicked()
 	if (LastSelectedPaths.Num() > 1)
 	{
 		DebugUtils::Message(EAppMsgType::Type::Ok, "Error", "Please only select one folder to perform this action on.");
+		return;
+	}
+
+	if (!AuditorProjectSettings::IsProjectFolderSet())
+	{
+		EAppReturnType::Type Reply = DebugUtils::Message(EAppMsgType::Type::YesNo, "Error",
+			"You must assign a project folder before you can use this action.\nWould you like to assign one now?");
+
+		if (Reply == EAppReturnType::Type::Yes) InvokeDirectoryManagementWidget();
 		return;
 	}
 	
@@ -193,7 +207,7 @@ void FAuditorModule::AddNamingConventionAssetMenuEntry(class FMenuBuilder& MenuB
 	MenuBuilder.AddMenuEntry(
 		FText::FromString(TEXT("Apply Naming Conventions")),
 		FText::FromString(TEXT("Rename relevant assets to comply with project naming conventions (i.e. prefixes & suffixes).")),
-		FSlateIcon(),
+		FSlateIcon(FAuditorStyle::GetStyleSetName(), FAuditorStyle::GetAuditorIconPropertyRegistry().NamingConvention),
 		FExecuteAction::CreateRaw(this, &FAuditorModule::NamingConventionAssetMenuButtonClicked),
 		FName("NamingConventions"));
 }
@@ -203,6 +217,15 @@ void FAuditorModule::NamingConventionAssetMenuButtonClicked()
 	if (LastSelectedAssets.IsEmpty())
 	{
 		DebugUtils::LogError("[NamingConventions] Please select an asset to perform this action on.");
+		return;
+	}
+
+	if (!AuditorProjectSettings::IsProjectFolderSet())
+	{
+		EAppReturnType::Type Reply = DebugUtils::Message(EAppMsgType::Type::YesNo, "Error",
+			"You must assign a project folder before you can use this action.\nWould you like to assign one now?");
+
+		if (Reply == EAppReturnType::Type::Yes) InvokeDirectoryManagementWidget();
 		return;
 	}
 	
@@ -308,17 +331,60 @@ void FAuditorModule::RegisterDirectoryManagementWidget()
 	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(
 		FName("DirectoryManagement"),
 		FOnSpawnTab::CreateRaw(this, &FAuditorModule::OnSpawnDirectoryManagementTab))
-	.SetDisplayName(FText::FromString("Directory Management"));
+	.SetDisplayName(FText::FromString("Directory Management"))
+	.SetAutoGenerateMenuEntry(false);
 }
 
 TSharedRef<SDockTab> FAuditorModule::OnSpawnDirectoryManagementTab(const FSpawnTabArgs& SpawnTabArgs)
 {
-	return SNew(SDockTab).TabRole(ETabRole::NomadTab);
+	TSharedRef<SDirectoryManagementWidget> DirectoryManagementWidget = SNew(SDirectoryManagementWidget)
+		.DataValidationStatus(AuditorProjectSettings::IsDataValidationEnabled())
+		.ProjectFolderName(AuditorProjectSettings::GetProjectFolderName());
+
+	DirectoryManagementWidget->OnCloseRequested(FDirectoryManagementCloseRequested::CreateRaw(this, &FAuditorModule::CloseDirectoryManagementWidget));
+	
+	TSharedRef<SDockTab> Tab = SNew(SDockTab)
+	.TabRole(ETabRole::NomadTab)
+	[
+		DirectoryManagementWidget
+	]
+	.ContentPadding(FMargin(25.f));
+	
+	TSharedRef<FTabManager> TabManager = FGlobalTabmanager::Get()->NewTabManager(Tab);
+	Tab->SetTabManager(TabManager.ToSharedPtr());
+
+	return Tab;
 }
 
 void FAuditorModule::InvokeDirectoryManagementWidget()
 {
-	FGlobalTabmanager::Get()->TryInvokeTab(FName("DirectoryManagement"));
+	TSharedPtr<SDockTab> Tab = FGlobalTabmanager::Get()->TryInvokeTab(FName("DirectoryManagement"));
+	
+	if (Tab.IsValid())
+	{
+		// We'll go with this for now even if not sure if it actually works. Stops tab from being docked though.
+		if (TSharedPtr<FTabManager> TabManager = Tab->GetTabManagerPtr())
+		{
+			TabManager.Get()->SetCanDoDragOperation(false);
+		}
+		
+		TSharedPtr<SWindow> Window = Tab->GetParentWindow();
+		if (Window.IsValid())
+		{
+			Window.Get()->SetSizingRule(ESizingRule::Autosized);
+		}
+	}
+}
+
+void FAuditorModule::CloseDirectoryManagementWidget()
+{
+	TSharedPtr<SDockTab> Tab = FGlobalTabmanager::Get()->FindExistingLiveTab(FName("DirectoryManagement"));
+
+	if (Tab.IsValid())
+	{
+		bool CloseRequest = Tab->RequestCloseTab();
+		if (!CloseRequest) DebugUtils::LogError(TEXT("[Directory Management] Tab close request denied."));
+	}
 }
 
 #pragma endregion
