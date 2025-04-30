@@ -8,7 +8,7 @@
 
 namespace ProjectDirUtils
 {
-	bool CreateDirectory(Node* Tree)
+	bool CreateDirectory(TSharedPtr<Node> Tree)
 	{
 		FString ProjectPath = "/Game/";
 		TArray<FString> Paths; GeneratePaths(Tree, ProjectPath, Paths);
@@ -22,17 +22,17 @@ namespace ProjectDirUtils
 		return true;
 	}
 
-	void GeneratePaths(Node* Root, FString& Path, TArray<FString>& Paths)
+	void GeneratePaths(TSharedPtr<Node> Root, FString& Path, TArray<FString>& Paths)
 	{
 		if (!Root) return;
 
 		// Original root for the directory, i.e. the project folder
 		if (!Root->GetParent()) Path.Append(Root->GetName() + "/");
 	
-		TArray<Node*> Children = Root->GetChildren();
+		TArray<TSharedPtr<Node>> Children = Root->GetChildren();
 		if (Children.IsEmpty()) return;
 	
-		for (Node* Child : Children)
+		for (TSharedPtr<Node> Child : Children)
 		{
 			FString RelativePath = Path;
 		
@@ -46,33 +46,33 @@ namespace ProjectDirUtils
 		}
 	}
 
-	Node* GetProjectDirectoryTree()
+	TSharedPtr<Node> GetProjectDirectoryTree()
 	{
-		Node* ProjectDirectoryTree = new Node(nullptr, AuditorProjectSettings::GetProjectFolderName());
+		TSharedPtr<Node> ProjectDirectoryTree = MakeShareable(new Node(nullptr, AuditorProjectSettings::GetProjectFolderName()));
 		
-		Node* AI = new Node(ProjectDirectoryTree, TEXT("AI"));
-		Node* Audio = new Node(ProjectDirectoryTree, TEXT("Audio"));
-		Node* Core = new Node(ProjectDirectoryTree, TEXT("Core"));
-		Node* Characters = new Node(ProjectDirectoryTree, TEXT("Characters"));
-		Node* FX = new Node(ProjectDirectoryTree, TEXT("FX"));
-		Node* Maps = new Node(ProjectDirectoryTree, TEXT("Maps"));
-		Node* UI = new Node(ProjectDirectoryTree, TEXT("UI"));
-		Node* Actions = new Node(ProjectDirectoryTree, TEXT("Actions"));
-		Node* Expeditions = new Node(ProjectDirectoryTree, TEXT("Expeditions"));
+		TSharedPtr<Node> AI = MakeShareable(new Node(ProjectDirectoryTree, TEXT("AI")));
+		TSharedPtr<Node> Audio = MakeShareable(new Node(ProjectDirectoryTree, TEXT("Audio")));
+		TSharedPtr<Node> Core = MakeShareable(new Node(ProjectDirectoryTree, TEXT("Core")));
+		TSharedPtr<Node> Characters = MakeShareable(new Node(ProjectDirectoryTree, TEXT("Characters")));
+		TSharedPtr<Node> FX = MakeShareable(new Node(ProjectDirectoryTree, TEXT("FX")));
+		TSharedPtr<Node> Maps = MakeShareable(new Node(ProjectDirectoryTree, TEXT("Maps")));
+		TSharedPtr<Node> UI = MakeShareable(new Node(ProjectDirectoryTree, TEXT("UI")));
+		TSharedPtr<Node> Actions = MakeShareable(new Node(ProjectDirectoryTree, TEXT("Actions")));
+		TSharedPtr<Node> Expeditions = MakeShareable(new Node(ProjectDirectoryTree, TEXT("Expeditions")));
 		
 		ProjectDirectoryTree->AddChildren({AI, Audio,  Core, Characters, FX, Maps, UI, Actions, Expeditions});
 
-		Node* CharacterAnimations = new Node(Characters, TEXT("Animations"));
+		TSharedPtr<Node> CharacterAnimations = MakeShareable(new Node(Characters, TEXT("Animations")));
 		Characters->AddChild(CharacterAnimations);
 
-		Node* FXFlares = new Node(FX, TEXT("Flares"));
+		TSharedPtr<Node> FXFlares = MakeShareable(new Node(FX, TEXT("Flares")));
 		FX->AddChild(FXFlares);
 
-		Node* MapsDev = new Node(FX, TEXT("Dev"));
+		TSharedPtr<Node> MapsDev = MakeShareable(new Node(FX, TEXT("Dev")));
 		Maps->AddChild(MapsDev);
 
-		Node* UIMaterials = new Node(FX, TEXT("Materials"));
-		Node* UIFonts = new Node(FX, TEXT("Fonts"));
+		TSharedPtr<Node> UIMaterials = MakeShareable(new Node(FX, TEXT("Materials")));
+		TSharedPtr<Node> UIFonts = MakeShareable(new Node(FX, TEXT("Fonts")));
 		UI->AddChildren({UIMaterials, UIFonts});
 
 		return ProjectDirectoryTree;

@@ -32,6 +32,7 @@ bool UAuditorEditorValidator::CanValidateAsset_Implementation(const FAssetData& 
 
 	bool InProjectFolder = false;
 
+	// Compare asset folder path to the project folder name to ensure it is within the project folder
 	if (!Folders.IsEmpty() && !ProjectFolderName.IsEmpty())
 	{
 		for (FString Folder : Folders)
@@ -40,13 +41,13 @@ bool UAuditorEditorValidator::CanValidateAsset_Implementation(const FAssetData& 
 			if (InProjectFolder) break;
 		}
 	}
-
+	// Ensure that data validation is enabled in plugin settings
 	if (AuditorProjectSettings::IsDataValidationEnabled() && InProjectFolder)
 	{
 		EAuditedAsset AssetKey = NamingConventionUtils::GetAuditedAssetByClass(InAssetData.GetClass(), InAssetData);
 		CanValidate = AssetKey != EAuditedAsset::None;
 	}
-
+	// Return true if above checks pass and asset key is valid
 	return CanValidate;
 }
 
@@ -93,25 +94,26 @@ EDataValidationResult UAuditorEditorValidator::ValidateLoadedAsset_Implementatio
 	
 	switch (Conformity)
 	{
-	case ENamingConventionTestResult::None:
+		// Missing suffix & prefix
+		case ENamingConventionTestResult::None:
 			Result = EDataValidationResult::Invalid;
 			AssetFails(InAsset, FormattedNoneError);
 			break;
-		
+		// Missing suffix
 		case ENamingConventionTestResult::Prefix:
 			Result = EDataValidationResult::Invalid;
 			AssetFails(InAsset, FormattedSuffixError);
 			break;
-		
+		// Missing prefix
 		case ENamingConventionTestResult::Suffix:
 			Result = EDataValidationResult::Invalid;
 			AssetFails(InAsset, FormattedPrefixError);
 			break;
 	default:
+		// Formatted correctly
 		Result = EDataValidationResult::Valid;
 		AssetPasses(InAsset);
 		break;
 	}
-	
 	return Result;
 }

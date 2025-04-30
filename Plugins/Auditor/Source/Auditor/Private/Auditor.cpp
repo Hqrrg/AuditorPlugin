@@ -48,14 +48,15 @@ void FAuditorModule::ShutdownModule()
 void FAuditorModule::InitializeMenuExtenders()
 {
 	FContentBrowserModule& ContentBrowserModule = FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser"));
+	// Folder menu extenders
 	TArray<FContentBrowserMenuExtender_SelectedPaths>& PathViewContextMenuExtenders = ContentBrowserModule.GetAllPathViewContextMenuExtenders();
-
+	// Register naming convention folder menu extender
 	FContentBrowserMenuExtender_SelectedPaths NamingConventionPathMenuExtenderDelegate;
 	NamingConventionPathMenuExtenderDelegate.BindRaw(this, &FAuditorModule::RegisterNamingConventionPathMenuExtension);
 	PathViewContextMenuExtenders.Add(NamingConventionPathMenuExtenderDelegate);
-
+	// Asset menu extenders
 	TArray<FContentBrowserMenuExtender_SelectedAssets>& AssetContextMenuExtenders = ContentBrowserModule.GetAllAssetViewContextMenuExtenders();
-	
+	// Register naming convention asset menu extender
 	FContentBrowserMenuExtender_SelectedAssets NamingConventionAssetMenuExtenderDelegate;
 	NamingConventionAssetMenuExtenderDelegate.BindRaw(this, &FAuditorModule::RegisterNamingConventionAssetMenuExtension);
 	AssetContextMenuExtenders.Add(NamingConventionAssetMenuExtenderDelegate);
@@ -133,23 +134,28 @@ void FAuditorModule::NamingConventionPathMenuButtonClicked()
 
 	int32 NumFormattedAssets = 0;
 
+	// Loop through all selected asset paths
 	for (FString& AssetPath : AssetPaths)
 	{
+		// Extract data from asset at path
 		const FAssetData& AssetData = UEditorAssetLibrary::FindAssetData(AssetPath);
 		UObject* Asset = AssetData.GetAsset();
 		TSoftClassPtr<UObject> AssetClass = Asset->GetClass();
 		FString AssetName = Asset->GetName();
 
+		// Get the asset key associated with the asset
 		EAuditedAsset AssetKey = NamingConventionUtils::GetAuditedAssetByClass(AssetClass, AssetData);
 		
 		if (AssetKey == EAuditedAsset::None) continue;
-		
+
+		// Fetch naming convention information from plugin config
 		FString FormattedAssetName = AssetName;
 		FString Prefix; AuditorProjectSettings::GetPrefix(AssetKey, Prefix);
 		FString Suffix; AuditorProjectSettings::GetSuffix(AssetKey, Suffix);
 
 		ENamingConventionTestResult Conformity = NamingConventionUtils::CheckConformity(AssetKey, AssetName);
-		
+
+		// Assign naming conventions based on conformity of the current name
 		switch (Conformity)
 		{
 			// Has neither prefix nor suffix
@@ -172,10 +178,12 @@ void FAuditorModule::NamingConventionPathMenuButtonClicked()
 			continue;
 		}
 
+		// Rename the asset with the correct naming format
 		UEditorUtilityLibrary::RenameAsset(Asset, FormattedAssetName);
 		NumFormattedAssets++;
 	}
-	
+
+	// Notify the user as to how many assets were affected
 	if (NumFormattedAssets > 0)
 	{
 		DebugUtils::Notify(FString::Printf(TEXT("Formatted %d asset%s to conform to naming conventions."),
@@ -186,28 +194,33 @@ void FAuditorModule::NamingConventionPathMenuButtonClicked()
 	else DebugUtils::Notify("Found assets are already conforming to naming conventions.", 3.0f);
 }
 
+// Register the context menu extender for applying naming conventions
 TSharedRef<FExtender> FAuditorModule::RegisterNamingConventionAssetMenuExtension(const TArray<FAssetData>& SelectedAssets)
 {
 	TSharedRef<FExtender> NamingConventionMenuExtender = MakeShareable(new FExtender());
 
-	if (SelectedAssets.Num() > 0)
+	if (SelectedAssets.Num() > 0) // If there are assets selected
 	{
 		NamingConventionMenuExtender->AddMenuExtension(
-			FName("Delete"),
-			EExtensionHook::Position::After,
+			FName("Delete"), // Hook (Existing Menu Entry)
+			EExtensionHook::Position::After, // Position (Place this entry after the hook)
 			TSharedPtr<FUICommandList>(),
-			FMenuExtensionDelegate::CreateRaw(this, &FAuditorModule::AddNamingConventionAssetMenuEntry));
+			// Calls function to add the menu entry
+			FMenuExtensionDelegate::CreateRaw(this, &FAuditorModule::AddNamingConventionAssetMenuEntry)); 
 	}
 	LastSelectedAssets = SelectedAssets;
 	return NamingConventionMenuExtender;
 }
 
+// Build the menu entry
 void FAuditorModule::AddNamingConventionAssetMenuEntry(class FMenuBuilder& MenuBuilder)
 {
 	MenuBuilder.AddMenuEntry(
 		FText::FromString(TEXT("Apply Naming Conventions")),
 		FText::FromString(TEXT("Rename relevant assets to comply with project naming conventions (i.e. prefixes & suffixes).")),
+		// Icon
 		FSlateIcon(FAuditorStyle::GetStyleSetName(), FAuditorStyle::GetAuditorIconPropertyRegistry().NamingConvention),
+		// Function to call when entry is clicked
 		FExecuteAction::CreateRaw(this, &FAuditorModule::NamingConventionAssetMenuButtonClicked),
 		FName("NamingConventions"));
 }
@@ -337,20 +350,22 @@ void FAuditorModule::RegisterDirectoryManagementWidget()
 
 TSharedRef<SDockTab> FAuditorModule::OnSpawnDirectoryManagementTab(const FSpawnTabArgs& SpawnTabArgs)
 {
+	// Creating and setting params
 	TSharedRef<SDirectoryManagementWidget> DirectoryManagementWidget = SNew(SDirectoryManagementWidget)
 		.DataValidationStatus(AuditorProjectSettings::IsDataValidationEnabled())
 		.ProjectFolderName(AuditorProjectSettings::GetProjectFolderName());
-
+	
+	// Adding functionality to close button
 	DirectoryManagementWidget->OnCloseRequested(FDirectoryManagementCloseRequested::CreateRaw(this, &FAuditorModule::CloseDirectoryManagementWidget));
 	
-	TSharedRef<SDockTab> Tab = SNew(SDockTab)
+	TSharedRef<SDockTab> Tab = SNew(SDockTab) // Creating a new nomad tab (floating tab)
 	.TabRole(ETabRole::NomadTab)
 	[
 		DirectoryManagementWidget
 	]
 	.ContentPadding(FMargin(25.f));
-	
-	TSharedRef<FTabManager> TabManager = FGlobalTabmanager::Get()->NewTabManager(Tab);
+	// Assign unique tab manager
+	TSharedRef<FTabManager> TabManager = FGlobalTabmanager::Get()->NewTabManager(Tab); 
 	Tab->SetTabManager(TabManager.ToSharedPtr());
 
 	return Tab;
@@ -367,7 +382,6 @@ void FAuditorModule::InvokeDirectoryManagementWidget()
 		{
 			TabManager.Get()->SetCanDoDragOperation(false);
 		}
-		
 		TSharedPtr<SWindow> Window = Tab->GetParentWindow();
 		if (Window.IsValid())
 		{

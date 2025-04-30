@@ -6,8 +6,8 @@ class Node;
 
 namespace ProjectDirUtils
 {
-	bool CreateDirectory(Node* Tree);
-	void GeneratePaths(Node* Root, FString& Path, TArray<FString>& Paths);
-	Node* GetProjectDirectoryTree();
+	bool CreateDirectory(TSharedPtr<Node> Tree);
+	void GeneratePaths(TSharedPtr<Node> Root, FString& Path, TArray<FString>& Paths);
+	TSharedPtr<Node> GetProjectDirectoryTree();
 }
 
